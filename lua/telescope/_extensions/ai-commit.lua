@@ -29,9 +29,31 @@ end
 local function commit_changes(message)
   local Job = require("plenary.job")
 
+  -- Split the message by new lines to separate subject and body
+  local lines = {}
+  for line in message:gmatch("[^\r\n]+") do
+    table.insert(lines, line)
+  end
+
+  local args = { "commit" }
+  if #lines > 0 then
+    -- Use the first line as the commit subject
+    table.insert(args, "-m")
+    table.insert(args, lines[1])
+    -- Add subsequent lines as additional -m arguments for the commit body
+    for i = 2, #lines do
+      table.insert(args, "-m")
+      table.insert(args, lines[i])
+    end
+  else
+    -- Fallback to the whole message if no lines found
+    table.insert(args, "-m")
+    table.insert(args, message)
+  end
+
   Job:new({
     command = "git",
-    args = { "commit", "-m", message },
+    args = args,
     on_exit = function(_, return_val)
       if return_val == 0 then
         vim.notify("Commit created successfully!", vim.log.levels.INFO)
