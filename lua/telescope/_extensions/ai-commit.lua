@@ -87,7 +87,9 @@ local function create_commit_picker(opts)
           local selection = action_state.get_selected_entry()
           actions.close(prompt_bufnr)
           if selection and selection[1] then
-            commit_changes(selection[1])
+            -- Select the whole paragraph (commit message) instead of just one line
+            local commit_message = selection[1]
+            commit_changes(commit_message)
           else
             vim.notify("No commit message selected", vim.log.levels.WARN)
           end
