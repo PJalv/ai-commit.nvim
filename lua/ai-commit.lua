@@ -2,7 +2,7 @@ local M = {}
 
 M.config = {
   openrouter_api_key = nil,
-  model = "qwen/qwen-2.5-72b-instruct:free",
+  model = "google/gemini-2.5-flash-preview",
   auto_push = false,
 }
 
