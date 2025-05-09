@@ -76,28 +76,46 @@ local function create_commit_picker(opts)
 
   opts = setup_opts(opts)
 
+  -- Combine lines into paragraphs separated by empty lines
+  local messages = {}
+  if opts.messages then
+    local paragraph = {}
+    for _, line in ipairs(opts.messages) do
+      if line == "" then
+        if #paragraph > 0 then
+          table.insert(messages, table.concat(paragraph, "\n"))
+          paragraph = {}
+        end
+      else
+        table.insert(paragraph, line)
+      end
+    end
+    if #paragraph > 0 then
+      table.insert(messages, table.concat(paragraph, "\n"))
+    end
+  end
+
   pickers
-    .new(opts, {
-      prompt_title = "AI Commit Messages",
-      finder = finders.new_table({ results = opts.messages or {} }),
-      previewer = false,
-      sorter = conf.generic_sorter(opts),
-      attach_mappings = function(prompt_bufnr)
-        actions.select_default:replace(function()
-          local selection = action_state.get_selected_entry()
-          actions.close(prompt_bufnr)
-          if selection and selection[1] then
-            -- Select the whole paragraph (commit message) instead of just one line
-            local commit_message = selection[1]
-            commit_changes(commit_message)
-          else
-            vim.notify("No commit message selected", vim.log.levels.WARN)
-          end
-        end)
-        return true
-      end,
-    })
-    :find()
+      .new(opts, {
+        prompt_title = "AI Commit Messages",
+        finder = finders.new_table({ results = messages }),
+        previewer = false,
+        sorter = conf.generic_sorter(opts),
+        attach_mappings = function(prompt_bufnr)
+          actions.select_default:replace(function()
+            local selection = action_state.get_selected_entry()
+            actions.close(prompt_bufnr)
+            if selection and selection[1] then
+              local commit_message = selection[1]
+              commit_changes(commit_message)
+            else
+              vim.notify("No commit message selected", vim.log.levels.WARN)
+            end
+          end)
+          return true
+        end,
+      })
+      :find()
 end
 
 return telescope.register_extension({
