@@ -327,7 +327,12 @@ function M.generate_commit(config)
     return
   end
 
+  local extra_info = vim.fn.input("Extra info to include ")
   local prompt = create_prompt(git_data)
+  if extra_info and extra_info ~= "" then
+    prompt = prompt .. "\n\nAdditional information:\n" .. extra_info
+  end
+
   local data = prepare_request_data(prompt, config.model)
 
   send_api_request(api_key, data)

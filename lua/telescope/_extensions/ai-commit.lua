@@ -68,12 +68,7 @@ local function commit_changes(message)
 end
 
 local function create_commit_picker(opts)
-  local pickers = require("telescope.pickers")
-  local finders = require("telescope.finders")
-  local conf = require("telescope.config").values
-  local actions = require("telescope.actions")
-  local action_state = require("telescope.actions.state")
-
+  local api = vim.api
   opts = setup_opts(opts)
 
   -- Combine lines into paragraphs separated by empty lines
@@ -95,27 +90,23 @@ local function create_commit_picker(opts)
     end
   end
 
-  pickers
-      .new(opts, {
-        prompt_title = "AI Commit Messages",
-        finder = finders.new_table({ results = messages }),
-        previewer = false,
-        sorter = conf.generic_sorter(opts),
-        attach_mappings = function(prompt_bufnr)
-          actions.select_default:replace(function()
-            local selection = action_state.get_selected_entry()
-            actions.close(prompt_bufnr)
-            if selection and selection[1] then
-              local commit_message = selection[1]
-              commit_changes(commit_message)
-            else
-              vim.notify("No commit message selected", vim.log.levels.WARN)
-            end
-          end)
-          return true
-        end,
-      })
-      :find()
+  -- Create a floating window to display the commit message
+  local commit_message = table.concat(messages, "\n")
+  local buf = api.nvim_create_buf(false, true) -- Create a new buffer
+  local width = 60
+  local height = 20
+  local win = api.nvim_open_win(buf, true, {
+    relative = 'editor',
+    width = width,
+    height = height,
+    col = (api.nvim_get_option("columns") - width) / 2,
+    row = (api.nvim_get_option("lines") - height) / 2,
+    border = 'rounded',
+  })
+
+  api.nvim_buf_set_lines(buf, 0, -1, false, vim.split(commit_message, "\n")) -- Set the commit message in the buffer
+  api.nvim_buf_set_option(buf, 'modifiable', false) -- Make the buffer read-only
+  api.nvim_win_set_option(win, 'winhl', 'Normal:Normal') -- Set window highlight
 end
 
 return telescope.register_extension({
