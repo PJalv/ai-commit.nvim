@@ -48,7 +48,7 @@ local function prepare_request_data(prompt, model)
       {
         role = "system",
         content =
-        "You are a helpful assistant that generates git commit messages following the conventional commits specification.",
+        "You are a helpful assistant that generates git commit messages following the conventional commits specification. You will be given output from git diffs, process them and generate: ONE (1) MULTILINE Commit message, with the changes, following the specifications. Sometimes you will be given additional information, try to adhere your commit message to that additional info.",
       },
       {
         role = "user",
