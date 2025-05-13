@@ -3,7 +3,14 @@ local M = {}
 local openrouter_api_endpoint = "https://openrouter.ai/api/v1/chat/completions"
 -- TODO: Make commit message template configurable
 local commit_prompt_template = [[
+%s
+
+%s
 ]]
+
+local function create_prompt(git_data, prompt_template)
+  return string.format(prompt_template, git_data.diff, git_data.commits)
+end
 
 local function validate_api_key(config)
   local api_key = config.openrouter_api_key or vim.env.OPENROUTER_API_KEY
@@ -33,9 +40,6 @@ local function collect_git_data()
   }
 end
 
-local function create_prompt(git_data)
-  return string.format(commit_prompt_template, git_data.diff, git_data.commits)
-end
 
 local function prepare_request_data(prompt, model)
   return {
@@ -121,6 +125,10 @@ local function send_api_request(api_key, data)
     vim.notify("Generating commit message...", vim.log.levels.INFO)
   end)
 
+  -- Print the JSON payload for debugging purposes
+  print("JSON payload sent to API:")
+  print(vim.json.encode(data))
+
   require("plenary.curl").post(openrouter_api_endpoint, {
     headers = {
       content_type = "application/json",
@@ -143,7 +151,8 @@ function M.generate_commit(config)
   end
 
   local extra_info = vim.fn.input("Extra info to include ")
-  local prompt = create_prompt(git_data)
+  local prompt_template = config.custom_prompt or commit_prompt_template
+  local prompt = create_prompt(git_data, prompt_template)
   if extra_info and extra_info ~= "" then
     prompt = prompt .. "\n\nAdditional information:\n" .. extra_info
   end

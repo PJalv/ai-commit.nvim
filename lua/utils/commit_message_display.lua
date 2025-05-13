@@ -46,4 +46,3 @@ function M.show_commit_message(messages)
 end
 
 return M
-

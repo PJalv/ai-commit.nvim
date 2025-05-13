@@ -4,6 +4,7 @@ M.config = {
   openrouter_api_key = nil,
   model = "google/gemini-2.5-flash-preview",
   auto_push = false,
+  custom_prompt = "",
 }
 
 M.setup = function(opts)
