@@ -4,12 +4,10 @@ local openrouter_api_endpoint = "https://openrouter.ai/api/v1/chat/completions"
 -- TODO: Make commit message template configurable
 local commit_prompt_template = [[
 %s
-
-%s
 ]]
 
 local function create_prompt(git_data, prompt_template)
-  return string.format(prompt_template, git_data.diff, git_data.commits)
+  return string.format(prompt_template, git_data.diff)
 end
 
 local function validate_api_key(config)
@@ -25,18 +23,16 @@ local function validate_api_key(config)
 end
 
 local function collect_git_data()
-  local diff_context = vim.fn.system("git -P diff --cached -U10")
+  local commit_data_raw = vim.fn.system("python3 commit.py")
 
-  if diff_context == "" then
-    vim.notify("No staged changes found. Add files with 'git add' first.", vim.log.levels.ERROR)
+  if commit_data_raw == "" then
+    vim.notify("Failed to get commit data from commit.py", vim.log.levels.ERROR)
     return nil
   end
 
-  local recent_commits = vim.fn.system("git log --oneline -n 5")
-
   return {
-    diff = diff_context,
-    commits = recent_commits,
+    diff = commit_data_raw,
+    commits = "", -- No commit history is provided with raw diff
   }
 end
 
